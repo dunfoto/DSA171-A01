@@ -100,10 +100,12 @@ public:
 
 bool initVGlobalData(void** pGData) {
     CommandManager *mCMD = new CommandManager();
+    
     pGData = (void**) &mCMD;
 
     //Register all command
     mCMD->registerCommand("CNV", CNV);
+    
 
     return true;
 }
