@@ -11,7 +11,7 @@
 
 class CommandIfo {
 public:
-    unsigned bool (*op)(char*,L1List<VRecord>&);
+    bool (*op)(char*,L1List<VRecord>&);
     char *cmd;
     CommandIfo(char *c, bool (*inop)(char*,L1List<VRecord>&)) {
         cmd = c;
@@ -37,38 +37,19 @@ public:
 };
 
 class CommandManager {
-public:
-    CommandManager() {
-        mCommand = new L1List<CommandIfo>();
-    };
-    ~CommandManager() {
-        delete mCommand;
-    };
-
-    L1List<CommandIfo> *mCommand;
-
-    void registerCommand(char *cmd, void (*inop)(char*,L1List<VRecord>&)) {
-        mCommand->insertHead(CommandIfo(cmd, inop));
-    }
-
-    bool process(VRequest& resquest, L1List<VRecord>& recList) {
-        CommandIfo p = getCommand(request);
-        char *args = getArgs(request);
-        if (p) {
-            return p->run(args, recList);
-        }
-        return false;
-    }
 private:
-    CommandIfo getCommand(VRequest& request) {
+    L1List<CommandIfo*> *mCommand = new L1List<CommandIfo*>();
+
+    CommandIfo* getCommand(VRequest& request) {
         char *cmd = request.getCmd();
         int idx = -1;
-        CommandIfo tmp = CommandIfo(cmd);
+        CommandIfo *tmp = new CommandIfo(cmd);
         if (mCommand->find(tmp, idx)) {
             delete cmd;
-            return mCommand[idx];
+            return mCommand->at(idx);
         }
         delete cmd;
+        return NULL;
     }
 
     char* getArgs(VRequest& request) {
@@ -79,13 +60,37 @@ private:
         }
         return arg;
     }
+public:
+    CommandManager() {};
+    ~CommandManager() {
+        delete mCommand;
+    };
+
+    void registerCommand(char *cmd, bool (*inop)(char*,L1List<VRecord>&)) {
+        CommandIfo *command = new CommandIfo(cmd, inop);
+        mCommand->insertHead(command);
+    }
+
+    bool process(VRequest& request, L1List<VRecord>& recList) {
+        CommandIfo *p = getCommand(request);
+        char *args = getArgs(request);
+        if (p) {
+            return p->run(args, recList);
+        }
+        return false;
+    }
 };
 
+bool CNV(char *cmd, L1List<VRecord> &recList) {
+    
+}
+
 bool initVGlobalData(void** pGData) {
-    pGData = new CommandManager();
+    CommandManager *mCMD = new CommandManager();
+    pGData = (void**) &mCMD;
 
     //Register all command
-    pGData->registerCommand("CNV", CNV);
+    mCMD->registerCommand("CNV", CNV);
 
     return true;
 }
@@ -94,5 +99,6 @@ void releaseVGlobalData(void* pGData) {
 }
 
 bool processRequest(VRequest& request, L1List<VRecord>& recList, void* pGData) {
-    return pGData->process(request, recList);
+    CommandManager *mCMD = (CommandManager*) pGData;
+    return mCMD->process(request, recList);
 }
