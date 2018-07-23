@@ -132,7 +132,7 @@ T& L1List<T>::at(int i) {
         return *d;
     }
     delete sElement;
-	return NULL;
+	return _pHead->data;
 }
 
 template <class T>

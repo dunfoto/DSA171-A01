@@ -9,9 +9,25 @@
 
 #define CODELEN = 3
 
+void CNV_addunit(VRecord &data,void *list){
+    L1List<VRecord>* l = (L1List<VRecord>*) list;
+    if (!l->exist(data)) l->insertHead(data);
+}
+
+bool CNV(char *args,L1List<VRecord> &recList){
+    if (args){
+        cout << "CNV:Failed";
+        return false;
+    }
+    L1List<VRecord> *ListUnit = new L1List<VRecord>();
+    recList.traverse(CNV_addunit,ListUnit);
+    cout << ListUnit->getSize();
+    return true;
+}
+
 class CommandIfo {
 public:
-    unsigned bool (*op)(char*,L1List<VRecord>&);
+    bool (*op)(char*,L1List<VRecord>&);
     char *cmd;
     CommandIfo(char *c, bool (*inop)(char*,L1List<VRecord>&)) {
         cmd = c;
@@ -47,15 +63,15 @@ public:
 
     L1List<CommandIfo> *mCommand;
 
-    void registerCommand(char *cmd, void (*inop)(char*,L1List<VRecord>&)) {
+    void registerCommand(char *cmd, bool (*inop)(char*,L1List<VRecord>&)) {
         mCommand->insertHead(CommandIfo(cmd, inop));
     }
 
-    bool process(VRequest& resquest, L1List<VRecord>& recList) {
+    bool process(VRequest& request, L1List<VRecord>& recList) {
         CommandIfo p = getCommand(request);
         char *args = getArgs(request);
-        if (p) {
-            return p->run(args, recList);
+        if (p.cmd) {
+            return p.run(args, recList);
         }
         return false;
     }
@@ -82,7 +98,7 @@ private:
 };
 
 bool initVGlobalData(void** pGData) {
-    pGData = new CommandManager();
+    *pGData = new CommandManager();
 
     //Register all command
     pGData->registerCommand("CNV", CNV);
@@ -94,5 +110,6 @@ void releaseVGlobalData(void* pGData) {
 }
 
 bool processRequest(VRequest& request, L1List<VRecord>& recList, void* pGData) {
-    return pGData->process(request, recList);
+    CommandManager *pC = (CommandManager*) pGData;
+    return pC->process(request, recList);
 }
