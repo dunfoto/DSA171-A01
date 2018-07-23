@@ -58,6 +58,7 @@ struct SearchElement {
 
 template <class T>
 class L1List {
+	T AttrNull = NULL;
     L1Item<T>   *_pHead;// The head pointer of linked list
     size_t      _size;// number of elements in this list
 public:
@@ -132,7 +133,11 @@ T& L1List<T>::at(int i) {
         return *d;
     }
     delete sElement;
+<<<<<<< HEAD
 	return _pHead->data;
+=======
+	return AttrNull;
+>>>>>>> 27393d61f4d0b5b3045b8a6b51f7df844a68c2f0
 }
 
 template <class T>
