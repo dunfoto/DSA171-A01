@@ -25,6 +25,7 @@ bool CNV(char *args,L1List<VRecord> &recList){
     return true;
 }
 
+
 class CommandIfo {
 public:
     bool (*op)(char*,L1List<VRecord>&);
@@ -96,10 +97,6 @@ public:
         return false;
     }
 };
-
-bool CNV(char *cmd, L1List<VRecord> &recList) {
-    
-}
 
 bool initVGlobalData(void** pGData) {
     CommandManager *mCMD = new CommandManager();

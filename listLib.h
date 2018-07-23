@@ -75,6 +75,16 @@ public:
         return _size;
     }
 
+    bool exist(T &a){
+        if (!_pHead) return false;
+        L1Item<T> *_pRun = _pHead;
+        while (_pRun){
+            if (_pRun->data == a) return true;
+            _pRun = _pRun->pNext;
+        }
+        return false;
+    }
+
     T&      at(int i);
     T&      operator[](int i) {
     	return at(i);
@@ -133,11 +143,7 @@ T& L1List<T>::at(int i) {
         return *d;
     }
     delete sElement;
-<<<<<<< HEAD
-	return _pHead->data;
-=======
 	return AttrNull;
->>>>>>> 27393d61f4d0b5b3045b8a6b51f7df844a68c2f0
 }
 
 template <class T>
