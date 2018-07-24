@@ -99,6 +99,15 @@ void devices(VRecord &data, void *list){
     if (!l->exist(data)) l->insertHead(data);
 }
 
+void findDevice(VRecord &data, void *cmp) {
+    VRecord *r = (VRecord *) cmp;
+    if (*r == data) {
+        r->x = data.x;
+        r->y = data.y;
+        r->timestamp = data.timestamp;
+    }
+}
+
 bool CNV(char *args, L1List<VRecord> &recList){
     if (args){
         NOTFOUND;
@@ -132,18 +141,45 @@ bool VFL(char *cmd, L1List<VRecord> &recList) {
 }
 
 bool VFY(char *cmd, L1List<VRecord> &recList) {
-    if (cmd) NOTFOUND;
+    if (!cmd) return false;
     L1List<VRecord> l;
     recList.traverse(devices, &l);
-    l.reverse();
-    if (!l.isEmpty()) {
-        cout << l[l.getSize() - 1].id << endl;
-    } else NOTFOUND;
+    VRecord r(cmd);
+    l.traverse(findDevice, &r);
+    cout << r.y << endl;
+    return true;
+}
+
+bool VFX(char *cmd, L1List<VRecord> &recList) {
+    if (!cmd) return false;
+    L1List<VRecord> l;
+    recList.traverse(devices, &l);
+    VRecord r(cmd);
+    l.traverse(findDevice, &r);
+    cout << r.x << endl;
     return true;
 }
 
 enum CmdType {
-    CNVType, VFFType, VFLType, VFYType, VFXType
+    CNVType, 
+    VFFType, VFLType, 
+    VFYType, VFXType,
+    VLYType, VLXType,
+    VFTType, VLTType,
+    VCRType, VCLType,
+    VMTType,
+    VFSType, VLSType,
+    VMSType,
+    VASType,
+    MSTType,
+    CNRType,
+    MRVType, LRVType,
+    MTVType,
+    MVVType,
+    CNSType,
+    CASType,
+    LPVType, SPVType,
+    RVRType
 };
 
 char *getCmdLabel(CmdType type) {
@@ -165,8 +201,13 @@ char *getCmdLabel(CmdType type) {
             return ret;
         }
         case VFYType: {
-            string vfl = "VFL";
-            strcpy(ret, vfl.data());
+            string vfy = "VFY";
+            strcpy(ret, vfy.data());
+            return ret;
+        }
+        case VFXType: {
+            string vfx = "VFX";
+            strcpy(ret, vfx.data());
             return ret;
         }
     }
@@ -180,7 +221,8 @@ bool initVGlobalData(void** pGData) {
     mCMD->registerCommand(getCmdLabel(CNVType), CNV);
     mCMD->registerCommand(getCmdLabel(VFFType), VFF);
     mCMD->registerCommand(getCmdLabel(VFLType), VFL);
-
+    mCMD->registerCommand(getCmdLabel(VFYType), VFY);
+    mCMD->registerCommand(getCmdLabel(VFXType), VFX);
     return true;
 }
 void releaseVGlobalData(void* pGData) {
