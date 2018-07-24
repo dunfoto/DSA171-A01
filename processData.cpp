@@ -14,8 +14,7 @@ void CNV_addunit(VRecord &data,void *list){
 
 bool CNV(char *args,L1List<VRecord> &recList){
     if (args){
-        cout << "CNV:Failed";
-        return true;
+        return false;
     }
     L1List<VRecord> *ListUnit = new L1List<VRecord>();
     recList.traverse(CNV_addunit,ListUnit);
@@ -102,15 +101,6 @@ public:
         return p.run(args, recList);
     }
 };
-
-bool CNV(char *cmd, L1List<VRecord> &recList) {
-    if (cmd != NULL)
-        cout << cmd << endl;
-    else {
-        cout << "Command is null" << endl;
-    }
-    return true;
-}
 
 bool VFF(char *cmd, L1List<VRecord> &recList) {
     if (cmd != NULL)
