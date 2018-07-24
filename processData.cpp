@@ -116,6 +116,37 @@ void getRoD(VRecord &data, void *list) {
     }
 }
 
+void getStopRecords(VRecord &data, void *list) {
+    L1List<VRecord> *ls = (L1List<VRecord>*) list;
+    if (ls[0].isEmpty()) {
+        ls[0].insertHead(data);
+    } else {
+        VRecord crtRecord = ls[0][0];
+        if (crtRecord.x == data.x && crtRecord.y == data.y) {
+            if (ls[0].getSize() > 1) {
+                VRecord preRecord = ls[0][1];
+                if (preRecord.x == data.x && preRecord.y == data.y) {
+                    ls[0].removeHead();
+                    ls[0].insertHead(data);
+                } else ls[0].insertHead(data);
+            } else ls[0].insertHead(data);
+        } else {
+            if (ls[0].getSize() == 1){
+                ls[0].removeHead();
+                ls[0].insertHead(data);
+            } else {
+                VRecord preRecord = ls[0][1];
+                if (crtRecord.x == preRecord.x && crtRecord.y == preRecord.y) {
+                    ls[0].insertHead(data);
+                } else {
+                    ls[0].removeHead();
+                    ls[0].insertHead(data);
+                }
+            }
+        }
+    }
+}
+
 bool CNV(char *args, L1List<VRecord> &recList){
     if (args){
         NOTFOUND;
@@ -224,6 +255,7 @@ bool VLT(char *cmd, L1List<VRecord> &recList) {
         char *ret = new char[100];
         strPrintTime(ret, r.timestamp);
         cout << ret << endl;
+        delete ret;
     } else NOTFOUND;
     return true;
 }
@@ -236,12 +268,46 @@ bool VCR(char *cmd, L1List<VRecord> &recList) {
     recList.traverse(getRoD, &l);
     l.removeHead();
 
-    cout << l.getSize() << endl;
+    if (!l.isEmpty())
+        cout << l.getSize() << endl;
+    else NOTFOUND;
     return true;
 }
 
 bool VCL(char *cmd, L1List<VRecord> &recList){
 
+}
+
+bool VMT(char *cmd, L1List<VRecord> &recList){
+    if (!cmd) return false;
+    VRecord r(cmd);
+    L1List<VRecord> l;
+    l.insertHead(r);
+    recList.traverse(getRoD, &l);
+    l.removeHead();
+
+    if (!l.isEmpty()){
+        time_t t = l[l.getSize() - 1].timestamp - l[0].timestamp;
+        cout << t << endl;
+    }
+    else NOTFOUND;
+    return true;
+}
+
+bool VFS(char *cmd, L1List<VRecord> &recList){
+    if (!cmd) return false;
+    VRecord r(cmd);
+    L1List<VRecord> l;
+    l.insertHead(r);
+    recList.traverse(getRoD, &l);
+    l.removeHead();
+
+    if (!l.isEmpty()){
+        L1List<Comparator<VRecord>> cmpRecord;
+        
+    }
+    else NOTFOUND;
+    return true;
 }
 
 enum CmdType {
@@ -324,6 +390,16 @@ char *getCmdLabel(CmdType type) {
             strcpy(ret, vfx.data());
             return ret;
         }
+        case VMTType: {
+            string vfx = "VMT";
+            strcpy(ret, vfx.data());
+            return ret;
+        }
+        case VFSType: {
+            string vfx = "VFS";
+            strcpy(ret, vfx.data());
+            return ret;
+        }
     }
     return ret;
 }
@@ -343,6 +419,8 @@ bool initVGlobalData(void** pGData) {
     mCMD->registerCommand(getCmdLabel(VFTType), VFT);
     mCMD->registerCommand(getCmdLabel(VLTType), VLT);
     mCMD->registerCommand(getCmdLabel(VCRType), VCR);
+    mCMD->registerCommand(getCmdLabel(VMTType), VMT);
+    mCMD->registerCommand(getCmdLabel(VMTType), VFS);
     return true;
 }
 void releaseVGlobalData(void* pGData) {
