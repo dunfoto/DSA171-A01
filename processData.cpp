@@ -108,6 +108,10 @@ void findDevice(VRecord &data, void *cmp) {
     }
 }
 
+void getDistance(VRecord &data, void *r){
+    
+}
+
 bool CNV(char *args, L1List<VRecord> &recList){
     if (args){
         NOTFOUND;
@@ -141,11 +145,29 @@ bool VFL(char *cmd, L1List<VRecord> &recList) {
 }
 
 bool VLY(char *cmd, L1List<VRecord> &recList){
-    
+    if (!cmd) return false;
+    L1List<VRecord> l;
+    recList.traverse(devices,&l);
+    VRecord r(cmd);
+    r.y = -1;
+    recList.traverse(findDevice, &r);
+    if (r.y != -1)
+        cout << r.y << endl;
+    else NOTFOUND;
+    return true;
 }
 
 bool VLX(char *cmd, L1List<VRecord> &recList){
-
+    if (!cmd) return false;
+    L1List<VRecord> l;
+    recList.traverse(devices,&l);
+    VRecord r(cmd);
+    r.x = -1;
+    recList.traverse(findDevice, &r);
+    if (r.x != -1)
+        cout << r.x << endl;
+    else NOTFOUND;
+    return true;
 }
 
 bool VFY(char *cmd, L1List<VRecord> &recList) {
@@ -166,6 +188,10 @@ bool VFX(char *cmd, L1List<VRecord> &recList) {
     l.traverse(findDevice, &r);
     cout << r.x << endl;
     return true;
+}
+
+bool VCL(char *cmd, L1List<VRecord> &recList){
+
 }
 
 enum CmdType {
@@ -228,6 +254,11 @@ char *getCmdLabel(CmdType type) {
             strcpy(ret, vfx.data());
             return ret;
         }
+        case VCLType: {
+            string vcl = "VCL";
+            strcpy(ret, vcl.data());
+            return ret;
+        }
     }
     return ret;
 }
@@ -241,7 +272,7 @@ bool initVGlobalData(void** pGData) {
     mCMD->registerCommand(getCmdLabel(VFLType), VFL);
     mCMD->registerCommand(getCmdLabel(VLYType), VLY);
     mCMD->registerCommand(getCmdLabel(VLXType), VLX);
-
+    mCMD->registerCommand(getCmdLabel(VCLType), VCL);
     mCMD->registerCommand(getCmdLabel(VFYType), VFY);
     mCMD->registerCommand(getCmdLabel(VFXType), VFX);
     return true;
