@@ -108,7 +108,6 @@ void findDevice(VRecord &data, void *cmp) {
     }
 }
 
-void getDistance(VRecord &data, void *r){}
 void getRoD(VRecord &data, void *list) {
     L1List<VRecord>* l = (L1List<VRecord>*) list;
     if (data == l->at(0)) {
@@ -241,7 +240,48 @@ bool VCR(char *cmd, L1List<VRecord> &recList) {
 }
 
 bool VCL(char *cmd, L1List<VRecord> &recList){
+    if (!cmd) return false;
+    VRecord r(cmd);
+    L1List<VRecord> l;
+    l.insertHead(r);
+    recList.traverse(getRoD, &l);
+    l.removeHead();
+    if (l.isEmpty()) NOTFOUND;
+    else {
+        L1Item<VRecord> *_pCur = l.getHead();
+        L1Item<VRecord> *_pNext = _pCur->pNext;
+        double sumDistance = 0.0;
+        while (_pNext){
+            sumDistance += distanceVR(_pCur->data.y,_pCur->data.x,_pNext->data.y,_pNext->data.x);
+            _pCur = _pNext;
+            _pNext = _pCur->pNext;
+        }
+        cout << sumDistance << endl;
+    }
+    return true;
 
+}
+
+bool VAS(char *cmd, L1List<VRecord> &recList){
+    if (!cmd) return false;
+    VRecord r(cmd);
+    L1List<VRecord> l;
+    l.insertHead(r);
+    recList.traverse(getRoD, &l);
+    l.removeHead();
+    if (l.isEmpty()) NOTFOUND;
+    else {
+        L1Item<VRecord> *_pCur = l.getHead();
+        L1Item<VRecord> *_pNext = _pCur->pNext;
+        double sumDistance = 0.0;
+        while (_pNext){
+            sumDistance += distanceVR(_pCur->data.y,_pCur->data.x,_pNext->data.y,_pNext->data.x);
+            _pCur = _pNext;
+            _pNext = _pCur->pNext;
+        }
+        cout << (sumDistance / (double)(l.getSize() - 1)) * 1000<< " meter" << endl;
+    }
+    return true;
 }
 
 enum CmdType {
@@ -324,6 +364,11 @@ char *getCmdLabel(CmdType type) {
             strcpy(ret, vfx.data());
             return ret;
         }
+        case VASType: {
+            string vas = "VAS";
+            strcpy(ret, vas.data());
+            return ret;
+        }
     }
     return ret;
 }
@@ -343,6 +388,7 @@ bool initVGlobalData(void** pGData) {
     mCMD->registerCommand(getCmdLabel(VFTType), VFT);
     mCMD->registerCommand(getCmdLabel(VLTType), VLT);
     mCMD->registerCommand(getCmdLabel(VCRType), VCR);
+    mCMD->registerCommand(getCmdLabel(VASType), VAS);
     return true;
 }
 void releaseVGlobalData(void* pGData) {
