@@ -7,6 +7,22 @@
 #include "requestLib.h"
 #include "dbLib.h"
 
+void CNV_addunit(VRecord &data,void *list){
+    L1List<VRecord>* l = (L1List<VRecord>*) list;
+    if (!l->exist(data)) l->insertHead(data);
+}
+
+bool CNV(char *args,L1List<VRecord> &recList){
+    if (args){
+        cout << "CNV:Failed";
+        return true;
+    }
+    L1List<VRecord> *ListUnit = new L1List<VRecord>();
+    recList.traverse(CNV_addunit,ListUnit);
+    cout << ListUnit->getSize();
+    return true;
+}
+
 class CommandIfo {
 public:
     bool (*op)(char*,L1List<VRecord>&);
@@ -72,7 +88,7 @@ public:
 
     void registerCommand(char *cmd, bool (*inop)(char*,L1List<VRecord>&)) {
         CommandIfo command = CommandIfo(cmd, inop);
-        mCommand->insertHead(command);
+        mCommand->push_back(command);
     }
 
     bool process(VRequest& request, L1List<VRecord>& recList) {
@@ -81,7 +97,6 @@ public:
         return p.run(args, recList);
     }
 };
-
 
 
 bool initVGlobalData(void** pGData) {

@@ -122,7 +122,7 @@ public:
     }
 };
 
-// ele is a SearchElement object
+//ele is a SearchElement object
 template <class T>
 void _at(T& data, void* ele) {
 	SearchElement<T> *e = (SearchElement<T>*) ele;
@@ -213,6 +213,7 @@ bool L1List<T>::find(T* a, int& idx) {
     }
     return false;
 }
+
 
 template <class T>
 void L1List<T>::clean() {
