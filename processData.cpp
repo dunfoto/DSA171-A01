@@ -32,7 +32,8 @@ public:
     }
 
     bool operator==(CommandIfo c) {
-        return isTrue(c.cmd);
+        bool ret =  isTrue(c.cmd);
+        return ret;
     }
 
     bool isTrue(char *c) {
@@ -47,12 +48,10 @@ private:
 
     bool getCommand(VRequest& request, CommandIfo& info) {
         char *cmd = request.getCmd();
-        cout << cmd << endl;
         int idx = -1;
         CommandIfo tmp(cmd);
         if (mCommand.find(tmp, idx)) {
             info = mCommand[idx];
-            info.print();
             return true;
         }
         return false;
@@ -98,11 +97,13 @@ bool CNV(char *cmd, L1List<VRecord> &recList) {
 
 bool VFF(char *cmd, L1List<VRecord> &recList) {
     if (cmd != NULL)
-        cout << cmd << endl;
+        return false;
     else {
-        cout << "Command is null" << endl;
+        if (recList.isEmpty()) 
+            return false;
+        else cout << recList[0].id << endl;
+        return true;
     }
-    return true;
 }
 
 enum CmdType {
@@ -142,7 +143,7 @@ void releaseVGlobalData(void* pGData) {
 
 bool processRequest(VRequest& request, L1List<VRecord>& recList, void* pGData) {
     CommandManager *mCMD = (CommandManager *) pGData;
-    cout << "\nProcessing command " << request.code << endl;
+    cout << request.code << ": ";
     bool ret = mCMD->process(request, recList);
     return ret;
 }

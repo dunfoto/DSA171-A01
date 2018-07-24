@@ -157,6 +157,7 @@ bool L1List<T>::find(T& a, int& idx) {
             return true;
         }
         p = p->pNext;
+        i++;
     }
     return false;
 }
