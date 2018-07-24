@@ -54,8 +54,7 @@ struct VRecord {
     }
 
     bool operator==(VRecord& b) {
-        return  strcmp(id, b.id) == 0 &&
-                timestamp == b.timestamp;
+        return  strcmp(id, b.id) == 0;
     }
 };
 

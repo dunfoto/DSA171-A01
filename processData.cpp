@@ -47,7 +47,8 @@ public:
     }
 
     bool operator==(CommandIfo c) {
-        return isTrue(c.cmd);
+        bool ret =  isTrue(c.cmd);
+        return ret;
     }
 
     bool isTrue(char *c) {
@@ -62,12 +63,10 @@ private:
 
     bool getCommand(VRequest& request, CommandIfo& info) {
         char *cmd = request.getCmd();
-        cout << cmd << endl;
         int idx = -1;
         CommandIfo tmp(cmd);
         if (mCommand.find(tmp, idx)) {
             info = mCommand[idx];
-            info.print();
             return true;
         }
         return false;
@@ -102,17 +101,53 @@ public:
     }
 };
 
+
+/**
+ * =============================================================================
+ *
+ * IMPLEMENT ALL FEATURE
+ * 
+ * ============================================================================= 
+ * */
+void devices(VRecord &data, void *list){
+    L1List<VRecord>* l = (L1List<VRecord>*) list;
+    if (!l->exist(data)) l->insertHead(data);
+}
+
+bool CNV(char *args, L1List<VRecord> &recList){
+    if (args){
+        return false;
+    }
+    L1List<VRecord> ListUnit;
+    recList.traverse(devices, &ListUnit);
+    cout << ListUnit.getSize() << endl;
+    return true;
+}
+
 bool VFF(char *cmd, L1List<VRecord> &recList) {
     if (cmd != NULL)
-        cout << cmd << endl;
+        return false;
     else {
-        cout << "Command is null" << endl;
+        if (recList.isEmpty()) 
+            return false;
+        else cout << recList[0].id << endl;
+        return true;
     }
+}
+
+bool VFL(char *cmd, L1List<VRecord> &recList) {
+    if (cmd) return false;
+    L1List<VRecord> l;
+    recList.traverse(devices, &l);
+    l.reverse();
+    if (!l.isEmpty()) {
+        cout << l[l.getSize() - 1].id << endl;
+    } else return false;
     return true;
 }
 
 enum CmdType {
-    CNVType, VFFType
+    CNVType, VFFType, VFLType
 };
 
 char *getCmdLabel(CmdType type) {
@@ -128,6 +163,11 @@ char *getCmdLabel(CmdType type) {
             strcpy(ret, vff.data());
             return ret;
         }
+        case VFLType: {
+            string vfl = "VFL";
+            strcpy(ret, vfl.data());
+            return ret;
+        }
     }
     return ret;
 }
@@ -138,6 +178,7 @@ bool initVGlobalData(void** pGData) {
     //Register all command
     mCMD->registerCommand(getCmdLabel(CNVType), CNV);
     mCMD->registerCommand(getCmdLabel(VFFType), VFF);
+    mCMD->registerCommand(getCmdLabel(VFLType), VFL);
 
     return true;
 }
@@ -148,7 +189,8 @@ void releaseVGlobalData(void* pGData) {
 
 bool processRequest(VRequest& request, L1List<VRecord>& recList, void* pGData) {
     CommandManager *mCMD = (CommandManager *) pGData;
-    cout << "\nProcessing command " << request.code << endl;
+    cout << request.code << ": ";
     bool ret = mCMD->process(request, recList);
-    return ret;
+    if (!ret) cout << "not found!" << endl;
+    return true;
 }
