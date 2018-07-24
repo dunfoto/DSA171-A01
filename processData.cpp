@@ -139,6 +139,17 @@ bool VLX(char *cmd, L1List<VRecord> &recList){
 
 }
 
+bool VFY(char *cmd, L1List<VRecord> &recList) {
+    if (cmd) NOTFOUND;
+    L1List<VRecord> l;
+    recList.traverse(devices, &l);
+    l.reverse();
+    if (!l.isEmpty()) {
+        cout << l[l.getSize() - 1].id << endl;
+    } else NOTFOUND;
+    return true;
+}
+
 enum CmdType {
     CNVType, VFFType, VFLType, VFYType, VFXType, VLYType, VLXType
 };
@@ -169,6 +180,11 @@ char *getCmdLabel(CmdType type) {
         case VLXType:{
             string vlx = "VLX";
             strcpy(ret,vlx.data());
+            return ret;
+        }
+        case VFYType: {
+            string vfl = "VFL";
+            strcpy(ret, vfl.data());
             return ret;
         }
     }
