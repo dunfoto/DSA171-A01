@@ -15,15 +15,15 @@ int main(int arg, char** argv) {
 	int b = 2;
 	int c = 3;
 
-	list->insert(0, a);
+	list->insertHead(a);
 	list->traverse(print);
 	cout << endl;
 
-	list->insert(0, b);
+	list->insertHead(b);
 	list->traverse(print);
 	cout << endl;
 
-	list->insert(0, c);
+	list->insertHead(c);
 	list->traverse(print);
 	cout << endl;
 

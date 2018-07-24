@@ -38,25 +38,6 @@ struct L1Item {
 };
 
 template <class T>
-struct SearchElement {
-	int goalIdx;
-	int currIdx;
-    bool checked = false;
-	T*	data;
-	SearchElement<T>(T* d) : goalIdx(-1), currIdx(0), data(d) {}
-	SearchElement<T>(int i) : goalIdx(i), currIdx(0), data(NULL) {}
-	bool isGoal() {
-		return goalIdx == currIdx;
-	}
-	void increaseIdx()	{
-		currIdx++;
-	}
-    bool equalsData(T& d) {
-        return d == *data;
-    }
-};
-
-template <class T>
 class L1List {
 	T AttrNull;
     L1Item<T>   *_pHead;// The head pointer of linked list
@@ -90,7 +71,7 @@ public:
     	return at(i);
     };
 
-    bool    find(T* a, int& idx);
+    bool    find(T& a, int& idx);
     int     insert(int i, T& a);
     int     remove(int i);
     void    reverse();
@@ -122,28 +103,14 @@ public:
     }
 };
 
-//ele is a SearchElement object
-template <class T>
-void _at(T& data, void* ele) {
-	SearchElement<T> *e = (SearchElement<T>*) ele;
-	if (e->isGoal()) {
-		e->data = &data;
-	} else {
-		e->increaseIdx();
-	}
-}
-
 template <class T>
 T& L1List<T>::at(int i) {
-	SearchElement<T> *sElement = new SearchElement<T>(i);
-	traverse(_at, sElement);
-    if (sElement->data) {
-        T* d = sElement->data;
-        delete sElement;
-        return *d;
+    L1Item<T> *p = _pHead;
+    while (i > 0) {
+        if (p) p = p->pNext;
+        i--;
     }
-    delete sElement;
-	return AttrNull;
+	return p->data;
 }
 
 template <class T>
@@ -191,25 +158,15 @@ int L1List<T>::remove(int i) {
 }
 
 template <class T>
-void _find(T& data, void *ele) {
-    SearchElement<T> *e = (SearchElement<T>*) ele;
-    if (e->equalsData(data)) {
-        if (!e->checked) {
-            e->goalIdx = e->currIdx;
-            e->checked = true;
+bool L1List<T>::find(T& a, int& idx) {
+    L1Item<T> *p = _pHead;
+    int i = 0;
+    while (p) {
+        if (p->data == a) {
+            idx = i;
+            return true;
         }
-    }
-    e->increaseIdx();
-}
-
-template <class T>
-bool L1List<T>::find(T* a, int& idx) {
-    if (a == NULL) return false;
-    SearchElement<T> *s = new SearchElement<T>(a);
-    traverse(_find, s);
-    if (s->checked) {
-        idx = s->goalIdx;
-        return true;
+        p = p->pNext;
     }
     return false;
 }

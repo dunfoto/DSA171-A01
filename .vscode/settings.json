@@ -3,8 +3,12 @@
         "iostream": "cpp",
         "array": "cpp",
         "string_view": "cpp",
+<<<<<<< HEAD
         "vector": "cpp",
         "*.tcc": "cpp",
         "unordered_map": "cpp"
+=======
+        "typeinfo": "cpp"
+>>>>>>> master
     }
 }

@@ -54,6 +54,7 @@ struct VRequest {
 
     char* getCmd() {
         char *result = new char[CMD_SIZE];
+        *(result+3) = '\0';
         strncpy(result, code, CMD_SIZE);
         return result;
     }
