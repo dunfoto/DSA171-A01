@@ -197,8 +197,6 @@ bool VLX(char *cmd, L1List<VRecord> &recList){
     return true;
 }
 
-void getMaxRoD(VRecord &data, void *list){}
-
 bool VFY(char *cmd, L1List<VRecord> &recList) {
     if (!cmd) return false;
     L1List<VRecord> l;
