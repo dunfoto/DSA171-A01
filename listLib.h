@@ -191,7 +191,7 @@ int L1List<T>::remove(int i) {
 }
 
 template <class T>
-bool _find(T& a, void *ele) {
+void _find(T& a, void *ele) {
     SearchElement<T> *e = (SearchElement<T>*) ele;
     if (e->equalsData(a)) {
         if (!e->checked) {
@@ -204,7 +204,7 @@ bool _find(T& a, void *ele) {
 
 template <class T>
 bool L1List<T>::find(T& a, int& idx) {
-    if (a == NULL) return false;
+    L1List<
 
 }
 
