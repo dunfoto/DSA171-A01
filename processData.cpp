@@ -6,6 +6,7 @@
  */
 #include "requestLib.h"
 #include "dbLib.h"
+#define NOTFOUND cout << "not found!" << endl
 
 class CommandIfo {
 public:
@@ -86,7 +87,6 @@ public:
     }
 };
 
-
 /**
  * =============================================================================
  *
@@ -101,7 +101,8 @@ void devices(VRecord &data, void *list){
 
 bool CNV(char *args, L1List<VRecord> &recList){
     if (args){
-        return false;
+        NOTFOUND;
+        return true;
     }
     L1List<VRecord> ListUnit;
     recList.traverse(devices, &ListUnit);
@@ -111,28 +112,27 @@ bool CNV(char *args, L1List<VRecord> &recList){
 
 bool VFF(char *cmd, L1List<VRecord> &recList) {
     if (cmd != NULL)
-        return false;
+        NOTFOUND;
     else {
-        if (recList.isEmpty()) 
-            return false;
+        if (recList.isEmpty()) NOTFOUND;
         else cout << recList[0].id << endl;
-        return true;
     }
+    return true;
 }
 
 bool VFL(char *cmd, L1List<VRecord> &recList) {
-    if (cmd) return false;
+    if (cmd) NOTFOUND;
     L1List<VRecord> l;
     recList.traverse(devices, &l);
     l.reverse();
     if (!l.isEmpty()) {
         cout << l[l.getSize() - 1].id << endl;
-    } else return false;
+    } else NOTFOUND;
     return true;
 }
 
 enum CmdType {
-    CNVType, VFFType, VFLType
+    CNVType, VFFType, VFLType, VFYType, VFXType
 };
 
 char *getCmdLabel(CmdType type) {
@@ -175,7 +175,5 @@ void releaseVGlobalData(void* pGData) {
 bool processRequest(VRequest& request, L1List<VRecord>& recList, void* pGData) {
     CommandManager *mCMD = (CommandManager *) pGData;
     cout << request.code << ": ";
-    bool ret = mCMD->process(request, recList);
-    if (!ret) cout << "not found!" << endl;
-    return true;
+    return mCMD->process(request, recList);
 }
