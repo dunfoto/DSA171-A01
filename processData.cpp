@@ -131,8 +131,16 @@ bool VFL(char *cmd, L1List<VRecord> &recList) {
     return true;
 }
 
+bool VLY(char *cmd, L1List<VRecord> &recList){
+    
+}
+
+bool VLX(char *cmd, L1List<VRecord> &recList){
+
+}
+
 enum CmdType {
-    CNVType, VFFType, VFLType, VFYType, VFXType
+    CNVType, VFFType, VFLType, VFYType, VFXType, VLYType, VLXType
 };
 
 char *getCmdLabel(CmdType type) {
@@ -153,6 +161,16 @@ char *getCmdLabel(CmdType type) {
             strcpy(ret, vfl.data());
             return ret;
         }
+        case VLYType:{
+            string vly = "VLY";
+            strcpy(ret,vly.data());
+            return ret;
+        }
+        case VLXType:{
+            string vlx = "VLX";
+            strcpy(ret,vlx.data());
+            return ret;
+        }
     }
     return ret;
 }
@@ -164,6 +182,8 @@ bool initVGlobalData(void** pGData) {
     mCMD->registerCommand(getCmdLabel(CNVType), CNV);
     mCMD->registerCommand(getCmdLabel(VFFType), VFF);
     mCMD->registerCommand(getCmdLabel(VFLType), VFL);
+    mCMD->registerCommand(getCmdLabel(VLYType), VLY);
+    mCMD->registerCommand(getCmdLabel(VLXType), VLX);
 
     return true;
 }
