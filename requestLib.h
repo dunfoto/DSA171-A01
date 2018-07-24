@@ -54,15 +54,12 @@ struct VRequest {
 
     char* getCmd() {
         char *result = new char[CMD_SIZE];
-        strncpy(result, code, CMD_SIZE - 1);
+        strncpy(result, code, CMD_SIZE);
         return result;
     }
 
     char* getArgs() {
-        char *arg = &code[CMD_SIZE];
-        char *result = new char[REQUEST_CODE_SIZE - CMD_SIZE];
-        strncpy(result, arg, REQUEST_CODE_SIZE - CMD_SIZE);
-        return result;
+        return (code + CMD_SIZE);
     }
 };
 

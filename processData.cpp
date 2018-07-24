@@ -7,8 +7,6 @@
 #include "requestLib.h"
 #include "dbLib.h"
 
-#define CODELEN = 3
-
 class CommandIfo {
 public:
     bool (*op)(char*,L1List<VRecord>&);
@@ -22,6 +20,8 @@ public:
         op = NULL;
         cmd = c;
     }
+
+    CommandIfo() : cmd(NULL), op(NULL) {}
 
     bool run(char *args, L1List<VRecord>& recList) {
         return op(args, recList);
@@ -38,9 +38,9 @@ public:
 
 class CommandManager {
 private:
-    L1List<CommandIfo*> *mCommand = new L1List<CommandIfo*>();
+    L1List<CommandIfo> *mCommand = new L1List<CommandIfo>();
 
-    CommandIfo* getCommand(VRequest& request) {
+    CommandIfo getCommand(VRequest& request) {
         char *cmd = request.getCmd();
         int idx = -1;
         CommandIfo *tmp = new CommandIfo(cmd);
@@ -66,39 +66,42 @@ public:
         delete mCommand;
     };
 
+    int getSize(){
+        return mCommand->getSize();
+    }
+
     void registerCommand(char *cmd, bool (*inop)(char*,L1List<VRecord>&)) {
-        CommandIfo *command = new CommandIfo(cmd, inop);
+        CommandIfo command = CommandIfo(cmd, inop);
         mCommand->insertHead(command);
     }
 
     bool process(VRequest& request, L1List<VRecord>& recList) {
-        CommandIfo *p = getCommand(request);
+        CommandIfo p = getCommand(request);
         char *args = getArgs(request);
-        if (p) {
-            return p->run(args, recList);
-        }
-        return false;
+        return p.run(args, recList);
     }
 };
 
 bool CNV(char *cmd, L1List<VRecord> &recList) {
-    
+    cout << cmd << endl;
+    return true;
 }
 
 bool initVGlobalData(void** pGData) {
     CommandManager *mCMD = new CommandManager();
-    pGData = (void**) &mCMD;
-
+    *pGData = mCMD;
     //Register all command
     mCMD->registerCommand("CNV", CNV);
-
+    
+    CommandManager *m = (CommandManager*) pGData;
     return true;
 }
 void releaseVGlobalData(void* pGData) {
-    delete pGData;
+    CommandManager *mCMD = static_cast<CommandManager *>(pGData);
+    delete mCMD;
 }
 
 bool processRequest(VRequest& request, L1List<VRecord>& recList, void* pGData) {
-    CommandManager *mCMD = (CommandManager*) pGData;
+    CommandManager *mCMD = static_cast<CommandManager *>(pGData);
     return mCMD->process(request, recList);
 }
