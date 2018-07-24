@@ -27,6 +27,8 @@ int main(int narg, char** argv) {
         return -1;
     }
 
+    clog << "Loaded " << reqList.getSize() << " request\n"; 
+
     while (!reqList.isEmpty()) {
         if (!processRequest(reqList[0], recDB, pGData))
             cout << "Failed to process the request\n";

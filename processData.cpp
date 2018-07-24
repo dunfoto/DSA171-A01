@@ -21,6 +21,10 @@ public:
         cmd = c;
     }
 
+    void print() {
+        cout << cmd << endl;
+    }
+
     CommandIfo() : cmd(NULL), op(NULL) {}
 
     bool run(char *args, L1List<VRecord>& recList) {
@@ -38,62 +42,97 @@ public:
 
 class CommandManager {
 private:
-    L1List<CommandIfo> *mCommand = new L1List<CommandIfo>();
+    CommandIfo AtrNULL;
+    L1List<CommandIfo> mCommand;
 
-    CommandIfo getCommand(VRequest& request) {
+    bool getCommand(VRequest& request, CommandIfo& info) {
         char *cmd = request.getCmd();
+        cout << cmd << endl;
         int idx = -1;
-        CommandIfo *tmp = new CommandIfo(cmd);
-        if (mCommand->find(tmp, idx)) {
-            delete cmd;
-            return mCommand->at(idx);
+        CommandIfo tmp(cmd);
+        if (mCommand.find(tmp, idx)) {
+            info = mCommand[idx];
+            info.print();
+            return true;
         }
-        delete cmd;
-        return NULL;
+        return false;
     }
 
     char* getArgs(VRequest& request) {
         char *arg = request.getArgs();
         if (strlen(arg) == 0) {
-            delete arg;
             return NULL;
         }
         return arg;
     }
 public:
     CommandManager() {};
-    ~CommandManager() {
-        delete mCommand;
-    };
+    ~CommandManager() {};
 
     int getSize(){
-        return mCommand->getSize();
+        return mCommand.getSize();
     }
 
     void registerCommand(char *cmd, bool (*inop)(char*,L1List<VRecord>&)) {
         CommandIfo command = CommandIfo(cmd, inop);
-        mCommand->insertHead(command);
+        mCommand.push_back(command);
     }
 
     bool process(VRequest& request, L1List<VRecord>& recList) {
-        CommandIfo p = getCommand(request);
+        CommandIfo p;
+        bool ret = getCommand(request, p);
+        if (!ret) return false;
         char *args = getArgs(request);
         return p.run(args, recList);
     }
 };
 
 bool CNV(char *cmd, L1List<VRecord> &recList) {
-    cout << cmd << endl;
+    if (cmd != NULL)
+        cout << cmd << endl;
+    else {
+        cout << "Command is null" << endl;
+    }
     return true;
+}
+
+bool VFF(char *cmd, L1List<VRecord> &recList) {
+    if (cmd != NULL)
+        cout << cmd << endl;
+    else {
+        cout << "Command is null" << endl;
+    }
+    return true;
+}
+
+enum CmdType {
+    CNVType, VFFType
+};
+
+char *getCmdLabel(CmdType type) {
+    char * ret = new char[3];
+    switch (type) {
+        case CNVType: {
+            string cnv = "CNV";
+            strcpy(ret, cnv.data());
+            return ret;
+        }
+        case VFFType: {
+            string vff = "VFF";
+            strcpy(ret, vff.data());
+            return ret;
+        }
+    }
+    return ret;
 }
 
 bool initVGlobalData(void** pGData) {
     CommandManager *mCMD = new CommandManager();
     *pGData = mCMD;
     //Register all command
-    mCMD->registerCommand("CNV", CNV);
-    
-    CommandManager *m = (CommandManager*) pGData;
+    mCMD->registerCommand(getCmdLabel(CNVType), CNV);
+    mCMD->registerCommand(getCmdLabel(VFFType), VFF);
+
     return true;
 }
 void releaseVGlobalData(void* pGData) {
@@ -102,6 +141,8 @@ void releaseVGlobalData(void* pGData) {
 }
 
 bool processRequest(VRequest& request, L1List<VRecord>& recList, void* pGData) {
-    CommandManager *mCMD = static_cast<CommandManager *>(pGData);
-    return mCMD->process(request, recList);
+    CommandManager *mCMD = (CommandManager *) pGData;
+    cout << "\nProcessing command " << request.code << endl;
+    bool ret = mCMD->process(request, recList);
+    return ret;
 }
