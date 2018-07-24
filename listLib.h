@@ -43,8 +43,8 @@ struct SearchElement {
 	int currIdx;
     bool checked = false;
 	T*	data;
-	SearchElement() : goalIdx(-1), currIdx(0), data(NULL) {}
-	SearchElement(int i) : goalIdx(i), currIdx(0), data(NULL) {}
+	SearchElement<T>(T* d) : goalIdx(-1), currIdx(0), data(d) {}
+	SearchElement<T>(int i) : goalIdx(i), currIdx(0), data(NULL) {}
 	bool isGoal() {
 		return goalIdx == currIdx;
 	}
@@ -58,7 +58,7 @@ struct SearchElement {
 
 template <class T>
 class L1List {
-	T AttrNull = NULL;
+	T AttrNull;
     L1Item<T>   *_pHead;// The head pointer of linked list
     size_t      _size;// number of elements in this list
 public:
@@ -90,7 +90,7 @@ public:
     	return at(i);
     };
 
-    bool    find(T& a, int& idx);
+    bool    find(T* a, int& idx);
     int     insert(int i, T& a);
     int     remove(int i);
     void    reverse();
@@ -191,9 +191,9 @@ int L1List<T>::remove(int i) {
 }
 
 template <class T>
-void _find(T& a, void *ele) {
+void _find(T& data, void *ele) {
     SearchElement<T> *e = (SearchElement<T>*) ele;
-    if (e->equalsData(a)) {
+    if (e->equalsData(data)) {
         if (!e->checked) {
             e->goalIdx = e->currIdx;
             e->checked = true;
@@ -203,9 +203,15 @@ void _find(T& a, void *ele) {
 }
 
 template <class T>
-bool L1List<T>::find(T& a, int& idx) {
-    L1List<
-
+bool L1List<T>::find(T* a, int& idx) {
+    if (a == NULL) return false;
+    SearchElement<T> *s = new SearchElement<T>(a);
+    traverse(_find, s);
+    if (s->checked) {
+        idx = s->goalIdx;
+        return true;
+    }
+    return false;
 }
 
 template <class T>

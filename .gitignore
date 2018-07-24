@@ -89,8 +89,4 @@ dkms.conf
 /cmake-build-debug/
 .idea/
 
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/

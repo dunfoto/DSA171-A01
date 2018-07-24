@@ -1,9 +1,7 @@
 {
     "files.associations": {
+        "iostream": "cpp",
         "array": "cpp",
-        "string_view": "cpp",
-        "*.tcc": "cpp",
-        "unordered_map": "cpp"
-    },
-    "C_Cpp.errorSquiggles": "Disabled"
+        "string_view": "cpp"
+    }
 }
