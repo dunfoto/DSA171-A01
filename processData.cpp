@@ -86,15 +86,6 @@ public:
     }
 };
 
-bool CNV(char *cmd, L1List<VRecord> &recList) {
-    if (cmd != NULL)
-        cout << cmd << endl;
-    else {
-        cout << "Command is null" << endl;
-    }
-    return true;
-}
-
 bool VFF(char *cmd, L1List<VRecord> &recList) {
     if (cmd != NULL)
         return false;
@@ -104,6 +95,10 @@ bool VFF(char *cmd, L1List<VRecord> &recList) {
         else cout << recList[0].id << endl;
         return true;
     }
+}
+
+bool VFL(char *cmd, L1List<VRecord> &recList) {
+    return true;
 }
 
 enum CmdType {
@@ -145,5 +140,6 @@ bool processRequest(VRequest& request, L1List<VRecord>& recList, void* pGData) {
     CommandManager *mCMD = (CommandManager *) pGData;
     cout << request.code << ": ";
     bool ret = mCMD->process(request, recList);
-    return ret;
+    if (!ret) cout << "not found!" << endl;
+    return true;
 }
