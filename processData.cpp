@@ -108,6 +108,14 @@ void findDevice(VRecord &data, void *cmp) {
     }
 }
 
+
+void getRoD(VRecord &data, void *list) {
+    L1List<VRecord>* l = (L1List<VRecord>*) list;
+    if (data == l->at(0)) {
+        l->push_back(data);
+    }
+}
+
 bool CNV(char *args, L1List<VRecord> &recList){
     if (args){
         NOTFOUND;
@@ -145,8 +153,11 @@ bool VFY(char *cmd, L1List<VRecord> &recList) {
     L1List<VRecord> l;
     recList.traverse(devices, &l);
     VRecord r(cmd);
+    r.y = -1;
     l.traverse(findDevice, &r);
-    cout << r.y << endl;
+    if (r.y != -1)
+        cout << r.y << endl;
+    else NOTFOUND;
     return true;
 }
 
@@ -155,8 +166,51 @@ bool VFX(char *cmd, L1List<VRecord> &recList) {
     L1List<VRecord> l;
     recList.traverse(devices, &l);
     VRecord r(cmd);
+    r.x = -1;
     l.traverse(findDevice, &r);
-    cout << r.x << endl;
+    if (r.x != -1)
+        cout << r.x << endl;
+    else NOTFOUND;
+    return true;
+}
+
+bool VFT(char *cmd, L1List<VRecord> &recList) {
+    if (!cmd) return false;
+    L1List<VRecord> l;
+    recList.traverse(devices, &l);
+    VRecord r(cmd);
+    r.timestamp = -1;
+    l.traverse(findDevice, &r);
+    if (r.timestamp != -1){
+        char *ret = new char[100];
+        strPrintTime(ret, r.timestamp);
+        cout << ret << endl;
+    } else NOTFOUND;
+    return true;
+}
+
+bool VLT(char *cmd, L1List<VRecord> &recList) {
+    if (!cmd) return false;
+    VRecord r(cmd);
+    r.timestamp = -1;
+    recList.traverse(findDevice, &r);
+    if (r.timestamp != -1){
+        char *ret = new char[100];
+        strPrintTime(ret, r.timestamp);
+        cout << ret << endl;
+    } else NOTFOUND;
+    return true;
+}
+
+bool VCR(char *cmd, L1List<VRecord> &recList) {
+    if (!cmd) return false;
+    VRecord r(cmd);
+    L1List<VRecord> l;
+    l.insertHead(r);
+    recList.traverse(getRoD, &l);
+    l.removeHead();
+
+    cout << l.getSize() << endl;
     return true;
 }
 
@@ -210,6 +264,21 @@ char *getCmdLabel(CmdType type) {
             strcpy(ret, vfx.data());
             return ret;
         }
+        case VFTType: {
+            string vfx = "VFT";
+            strcpy(ret, vfx.data());
+            return ret;
+        }
+        case VLTType: {
+            string vfx = "VLT";
+            strcpy(ret, vfx.data());
+            return ret;
+        }
+        case VCRType: {
+            string vfx = "VCR";
+            strcpy(ret, vfx.data());
+            return ret;
+        }
     }
     return ret;
 }
@@ -223,6 +292,9 @@ bool initVGlobalData(void** pGData) {
     mCMD->registerCommand(getCmdLabel(VFLType), VFL);
     mCMD->registerCommand(getCmdLabel(VFYType), VFY);
     mCMD->registerCommand(getCmdLabel(VFXType), VFX);
+    mCMD->registerCommand(getCmdLabel(VFTType), VFT);
+    mCMD->registerCommand(getCmdLabel(VLTType), VLT);
+    mCMD->registerCommand(getCmdLabel(VCRType), VCR);
     return true;
 }
 void releaseVGlobalData(void* pGData) {
