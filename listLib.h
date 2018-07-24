@@ -91,6 +91,16 @@ public:
             p = p->pNext;
         }
     }
+
+    bool exist(T &a){
+        //if (isEmpty()) return false;
+        L1Item<T> *_pRun = _pHead;
+        while (_pRun){
+            if (_pRun->data == a) return true;
+            _pRun = _pRun->pNext;
+        }
+        return false;
+    }
 };
 
 template <class T>

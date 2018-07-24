@@ -86,6 +86,29 @@ public:
     }
 };
 
+
+/**
+ * =============================================================================
+ *
+ * IMPLEMENT ALL FEATURE
+ * 
+ * ============================================================================= 
+ * */
+void devices(VRecord &data, void *list){
+    L1List<VRecord>* l = (L1List<VRecord>*) list;
+    if (!l->exist(data)) l->insertHead(data);
+}
+
+bool CNV(char *args, L1List<VRecord> &recList){
+    if (args){
+        return false;
+    }
+    L1List<VRecord> ListUnit;
+    recList.traverse(devices, &ListUnit);
+    cout << ListUnit.getSize() << endl;
+    return true;
+}
+
 bool VFF(char *cmd, L1List<VRecord> &recList) {
     if (cmd != NULL)
         return false;
@@ -98,11 +121,18 @@ bool VFF(char *cmd, L1List<VRecord> &recList) {
 }
 
 bool VFL(char *cmd, L1List<VRecord> &recList) {
+    if (cmd) return false;
+    L1List<VRecord> l;
+    recList.traverse(devices, &l);
+    l.reverse();
+    if (!l.isEmpty()) {
+        cout << l[l.getSize() - 1].id << endl;
+    } else return false;
     return true;
 }
 
 enum CmdType {
-    CNVType, VFFType
+    CNVType, VFFType, VFLType
 };
 
 char *getCmdLabel(CmdType type) {
@@ -118,6 +148,11 @@ char *getCmdLabel(CmdType type) {
             strcpy(ret, vff.data());
             return ret;
         }
+        case VFLType: {
+            string vfl = "VFL";
+            strcpy(ret, vfl.data());
+            return ret;
+        }
     }
     return ret;
 }
@@ -128,6 +163,7 @@ bool initVGlobalData(void** pGData) {
     //Register all command
     mCMD->registerCommand(getCmdLabel(CNVType), CNV);
     mCMD->registerCommand(getCmdLabel(VFFType), VFF);
+    mCMD->registerCommand(getCmdLabel(VFLType), VFL);
 
     return true;
 }
