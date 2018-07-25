@@ -106,7 +106,29 @@ public:
         }
     }
 
-
+    bool removeAll(T& d) {
+        if (isEmpty()) return false;
+        bool check = false;
+        while (_pHead -> data == d) {
+            removeHead();
+            check = true;
+        }
+        if (isEmpty()) return check;
+        L1Item<T> *pre = _pHead;
+        L1Item<T> *p = _pHead->pNext;
+        while (p) {
+            if (p -> data == d) {
+                check = true;
+                pre -> pNext = p -> pNext;
+                delete p;
+                p = pre->pNext;
+            } else {
+                pre = p;
+                p = p -> pNext;
+            }
+        }
+        return check;
+    }
 };
 
 template <class T>

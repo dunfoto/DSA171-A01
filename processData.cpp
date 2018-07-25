@@ -6,7 +6,6 @@
  */
 #include "requestLib.h"
 #include "dbLib.h"
-#include "processLib.h"
 #define NOTFOUND cout << "not found!" << endl
 #define NONSTOP cout << "non stop!" << endl
 
@@ -187,7 +186,9 @@ void removeStopRecords(L1List<VRecord> *ls) {
         }
     } else {
         int ret = getCheckValue(*ls);
-        if (ret == 4 || ret == 5) ls->removeHead();
+        if (ret == 4 || ret == 5) {
+            ls->removeHead();
+        }
     }
 }
 
@@ -388,6 +389,99 @@ bool VFS(char *cmd, L1List<VRecord> &recList){
     return true;
 }
 
+bool VLS(char *cmd, L1List<VRecord> &recList){
+    if (!cmd) return false;
+    VRecord r(cmd);
+    L1List<VRecord> l;
+    l.insertHead(r);
+    recList.traverse(getRoD, &l);
+    l.removeHead();
+
+    if (!l.isEmpty()){
+        L1List<VRecord> result;
+        l.traverse(getStopRecords, &result);
+        removeStopRecords(&result);
+        result.reverse();
+        if (result.isEmpty()) NONSTOP;
+        else cout << "(" << result[result.getSize() - 2].x 
+                    << " " << result[0].y << ")" << endl;
+    }
+    else NOTFOUND;
+    return true;
+}
+
+bool VMS(char *cmd, L1List<VRecord> &recList){
+    if (!cmd) return false;
+    VRecord r(cmd);
+    L1List<VRecord> l;
+    l.insertHead(r);
+    recList.traverse(getRoD, &l);
+    l.removeHead();
+
+    if (!l.isEmpty()){
+        L1List<VRecord> result;
+        l.traverse(getStopRecords, &result);
+        removeStopRecords(&result);
+        result.reverse();
+        int maxTime = 0;
+        if (result.isEmpty()) NONSTOP;
+        else {
+            for (int i = 0; i < result.getSize(); i+=2) {
+                int crtTime = result[i+1].timestamp - result[i].timestamp;
+                if (crtTime > maxTime) maxTime = crtTime;
+            }
+            cout << maxTime << endl;
+        }
+    }
+    else NOTFOUND;
+    return true;
+}
+
+bool MST(char *cmd, L1List<VRecord> &recList){
+    if (cmd) {
+        NOTFOUND;
+        return true;
+    }
+
+    L1List<VRecord> ListUnit;
+    recList.traverse(devices, &ListUnit);
+
+    int maxTime = -1;
+    for (int i = 0; i < ListUnit.getSize(); i++) {
+        L1List<VRecord> l;
+        l.insertHead(ListUnit[i]);
+        recList.traverse(getRoD, &l);
+        l.removeHead();
+
+        if (!l.isEmpty()){
+            L1List<VRecord> result;
+            l.traverse(getStopRecords, &result);
+            removeStopRecords(&result);
+            result.reverse();
+            if (result.isEmpty()) continue;
+            else {
+                for (int i = 0; i < result.getSize(); i+=2) {
+                    int crtTime = result[i+1].timestamp - result[i].timestamp;
+                    if (crtTime > maxTime) maxTime = crtTime;
+                }
+            }
+        }
+    }
+    if (maxTime == -1) NONSTOP;
+    else cout << maxTime << 's' << endl;
+
+    return true;
+}
+
+bool CNR(char *cmd, L1List<VRecord> &recList){
+    if (cmd) {
+        NOTFOUND;
+        return true;
+    }
+    cout << recList.getSize() << endl;
+    return true;
+}
+
 bool VAS(char *cmd, L1List<VRecord> &recList){
     if (!cmd) return false;
     VRecord r(cmd);
@@ -441,6 +535,231 @@ bool LRV(char *cmd, L1List<VRecord> &recList){
         ListUnit.traverse(getMin,&l);
 
         cout << l.at(0).id << endl;
+    }
+    return true;
+}
+
+bool MTV(char *cmd, L1List<VRecord> &recList) {
+    if (cmd) {
+        NOTFOUND;
+        return true;
+    }
+
+    L1List<VRecord> ListUnit;
+    recList.traverse(devices, &ListUnit);
+
+    int maxTime = -1;
+    char    id[16];
+    for (int i = 0; i < ListUnit.getSize(); i++) {
+        VRecord crt = ListUnit[i];
+        L1List<VRecord> l;
+        l.insertHead(crt);
+        recList.traverse(getRoD, &l);
+        l.removeHead();
+
+        if (!l.isEmpty()){
+            int t = l[l.getSize() - 1].timestamp - l[0].timestamp;
+            if (t > maxTime) {
+                maxTime = t;
+                strcpy(id, crt.id);
+            }
+        }
+        else continue;
+    }
+    if (maxTime == -1) NONSTOP;
+    else cout << id << endl;
+
+    return true;
+}
+
+bool MVV(char *cmd, L1List<VRecord> &recList) {
+    if (cmd) {
+        NOTFOUND;
+        return true;
+    }
+
+    L1List<VRecord> ListUnit;
+    recList.traverse(devices, &ListUnit);
+
+    char id[16];
+    double maxV = -1;
+    for (int i = 0; i < ListUnit.getSize(); i++) {
+        VRecord crt = ListUnit[i];
+        L1List<VRecord> l;
+        l.insertHead(crt);
+        recList.traverse(getRoD, &l);
+        l.removeHead();
+        if (l.isEmpty()) continue;
+        else {
+            double t = (double) l[l.getSize() - 1].timestamp - l[0].timestamp; 
+            L1Item<VRecord> *_pCur = l.getHead();
+            L1Item<VRecord> *_pNext = _pCur->pNext;
+            double sumDistance = 0.0;
+            while (_pNext){
+                sumDistance += distanceVR(_pCur->data.y,_pCur->data.x,_pNext->data.y,_pNext->data.x);
+                _pCur = _pNext;
+                _pNext = _pCur->pNext;
+            }
+            double crtV = sumDistance / t;
+            if (crtV > maxV) {
+                maxV = crtV;
+                strcpy(id, crt.id);
+            }
+        }
+    }
+
+    if (maxV == -1) NOTFOUND;
+    else cout << id << endl;
+    return true;
+}
+
+bool CNS(char *cmd, L1List<VRecord> &recList){
+    if (cmd) {
+        NOTFOUND;
+        return true;
+    }
+
+    L1List<VRecord> ListUnit;
+    recList.traverse(devices, &ListUnit);
+
+    int counter = 0;
+    for (int i = 0; i < ListUnit.getSize(); i++) {
+        L1List<VRecord> l;
+        l.insertHead(ListUnit[i]);
+        recList.traverse(getRoD, &l);
+        l.removeHead();
+
+        if (!l.isEmpty()){
+            L1List<VRecord> result;
+            l.traverse(getStopRecords, &result);
+            removeStopRecords(&result);
+            if (result.isEmpty()) counter++;
+        }
+    }
+    cout << counter << endl;
+
+    return true;
+}
+
+bool CAS(char *cmd, L1List<VRecord> &recList) {
+    if (cmd) {
+        NOTFOUND;
+        return true;
+    }
+
+    L1List<VRecord> ListUnit;
+    recList.traverse(devices, &ListUnit);
+
+    double distance = 0;
+    for (int i = 0; i < ListUnit.getSize(); i++) {
+        VRecord crt = ListUnit[i];
+        L1List<VRecord> l;
+        l.insertHead(crt);
+        recList.traverse(getRoD, &l);
+        l.removeHead();
+        if (l.isEmpty()) continue;
+        else {
+            L1Item<VRecord> *_pCur = l.getHead();
+            L1Item<VRecord> *_pNext = _pCur->pNext;
+            while (_pNext){
+                distance += distanceVR(_pCur->data.y,_pCur->data.x,_pNext->data.y,_pNext->data.x);
+                _pCur = _pNext;
+                _pNext = _pCur->pNext;
+            }
+        }
+    }
+    double p = (double) ListUnit.getSize() / 1000;
+    double dis = (double) distance / p;
+    cout << dis << endl;
+    return true;
+}
+
+bool LPV(char *cmd, L1List<VRecord> &recList) {
+    if (cmd) {
+        NOTFOUND;
+        return true;
+    }
+
+    L1List<VRecord> ListUnit;
+    recList.traverse(devices, &ListUnit);
+
+    double maxDistance = 0;
+    char id[16];
+    for (int i = 0; i < ListUnit.getSize(); i++) {
+        VRecord crt = ListUnit[i];
+        L1List<VRecord> l;
+        l.insertHead(crt);
+        recList.traverse(getRoD, &l);
+        l.removeHead();
+        if (l.isEmpty()) continue;
+        else {
+            L1Item<VRecord> *_pCur = l.getHead();
+            L1Item<VRecord> *_pNext = _pCur->pNext;
+            double distance = 0.0;
+            while (_pNext){
+                distance += distanceVR(_pCur->data.y,_pCur->data.x,_pNext->data.y,_pNext->data.x);
+                _pCur = _pNext;
+                _pNext = _pCur->pNext;
+            }
+            if (maxDistance <= distance) {
+                maxDistance = distance;
+                strcpy(id, crt.id);
+            }
+        }
+    }
+    
+    cout << id << endl;
+    return true;
+}
+
+bool SPV(char *cmd, L1List<VRecord> &recList) {
+    if (cmd) {
+        NOTFOUND;
+        return true;
+    }
+
+    L1List<VRecord> ListUnit;
+    recList.traverse(devices, &ListUnit);
+
+    double minDistance = 0;
+    char id[16];
+    for (int i = 0; i < ListUnit.getSize(); i++) {
+        VRecord crt = ListUnit[i];
+        L1List<VRecord> l;
+        l.insertHead(crt);
+        recList.traverse(getRoD, &l);
+        l.removeHead();
+        if (l.isEmpty()) continue;
+        else {
+            L1Item<VRecord> *_pCur = l.getHead();
+            L1Item<VRecord> *_pNext = _pCur->pNext;
+            double distance = 0.0;
+            while (_pNext){
+                distance += distanceVR(_pCur->data.y,_pCur->data.x,_pNext->data.y,_pNext->data.x);
+                _pCur = _pNext;
+                _pNext = _pCur->pNext;
+            }
+            if (minDistance >= distance) {
+                minDistance = distance;
+                strcpy(id, crt.id);
+            }
+        }
+    }
+    
+    cout << id << endl;
+    return true;
+}
+
+bool RVR(char *cmd, L1List<VRecord> &recList) {
+    if (!cmd) {
+        return false;
+    }
+
+    VRecord r(cmd);
+    if (recList.removeAll(r)) {
+        cout << "success!" << endl;
+    } else {
+        NOTFOUND;
     }
     return true;
 }
@@ -550,6 +869,61 @@ char *getCmdLabel(CmdType type) {
             strcpy(ret,lrv.data());
             return ret;
         }
+        case VLSType: {
+            string lrv = "VLS";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case VMSType: {
+            string lrv = "VMS";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case MSTType: {
+            string lrv = "MST";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case CNRType: {
+            string lrv = "CNR";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case MTVType: {
+            string lrv = "MTV";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case MVVType: {
+            string lrv = "MVV";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case CNSType: {
+            string lrv = "CNS";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case CASType: {
+            string lrv = "CAS";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case LPVType: {
+            string lrv = "LPV";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case SPVType: {
+            string lrv = "SPV";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
+        case RVRType: {
+            string lrv = "RVR";
+            strcpy(ret,lrv.data());
+            return ret;
+        }
     }
     return ret;
 }
@@ -574,6 +948,17 @@ bool initVGlobalData(void** pGData) {
     mCMD->registerCommand(getCmdLabel(VASType), VAS);
     mCMD->registerCommand(getCmdLabel(MRVType), MRV);
     mCMD->registerCommand(getCmdLabel(LRVType), LRV);
+    mCMD->registerCommand(getCmdLabel(VLSType), VLS);
+    mCMD->registerCommand(getCmdLabel(VMSType), VMS);
+    mCMD->registerCommand(getCmdLabel(MSTType), MST);
+    mCMD->registerCommand(getCmdLabel(CNRType), CNR);
+    mCMD->registerCommand(getCmdLabel(MTVType), MTV);
+    mCMD->registerCommand(getCmdLabel(MVVType), MVV);
+    mCMD->registerCommand(getCmdLabel(CNSType), CNS);
+    mCMD->registerCommand(getCmdLabel(CASType), CAS);
+    mCMD->registerCommand(getCmdLabel(LPVType), LPV);
+    mCMD->registerCommand(getCmdLabel(SPVType), SPV);
+    mCMD->registerCommand(getCmdLabel(RVRType), RVR);
     return true;
 }
 void releaseVGlobalData(void* pGData) {
