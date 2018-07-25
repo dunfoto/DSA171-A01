@@ -7,6 +7,7 @@
 #include "requestLib.h"
 #include "dbLib.h"
 #define NOTFOUND cout << "not found!" << endl
+#define NONSTOP cout << "non stop!" << endl
 
 class CommandIfo {
 public:
@@ -116,34 +117,65 @@ void getRoD(VRecord &data, void *list) {
     }
 }
 
+bool checkLocation(VRecord& a, VRecord& b) {
+    return a.x == b.x && a.y == b.y;
+}
+
+int getCheckValue(L1List<VRecord>& ls) {
+    if (ls.getSize() == 1) return -1;
+    if (ls.getSize() == 2) {
+        VRecord r1 = ls[0];
+        VRecord r2 = ls[1];
+        if (checkLocation(r1, r2)) return 0;
+        else return 1;
+    } else {
+        VRecord r1 = ls[0];
+        VRecord r2 = ls[1];
+        VRecord r3 = ls[2];
+        if (checkLocation(r1, r2)) {
+            if (checkLocation(r2, r3)) return 2;
+            else return 3;
+        } else {
+            if (checkLocation(r2, r3)) return 4;
+            else return 5;
+        }
+    }
+}
+
 void getStopRecords(VRecord &data, void *list) {
     L1List<VRecord> *ls = (L1List<VRecord>*) list;
-    if (ls[0].isEmpty()) {
-        ls[0].insertHead(data);
-    } else {
-        VRecord crtRecord = ls[0][0];
-        if (crtRecord.x == data.x && crtRecord.y == data.y) {
-            if (ls[0].getSize() > 1) {
-                VRecord preRecord = ls[0][1];
-                if (preRecord.x == data.x && preRecord.y == data.y) {
-                    ls[0].removeHead();
-                    ls[0].insertHead(data);
-                } else ls[0].insertHead(data);
-            } else ls[0].insertHead(data);
-        } else {
-            if (ls[0].getSize() == 1){
-                ls[0].removeHead();
-                ls[0].insertHead(data);
-            } else {
-                VRecord preRecord = ls[0][1];
-                if (crtRecord.x == preRecord.x && crtRecord.y == preRecord.y) {
-                    ls[0].insertHead(data);
-                } else {
-                    ls[0].removeHead();
-                    ls[0].insertHead(data);
-                }
-            }
+    ls->insertHead(data);
+    switch (getCheckValue(*ls)) {
+        case 0:
+            break;
+        case 1:
+            ls->removeLast();
+            break;
+        case 2:
+            ls->remove(1);
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            ls->remove(1);
+            break;
+    }
+}
+
+void removeStopRecords(L1List<VRecord> *ls) {
+    if (ls->isEmpty() || ls->getSize() == 1) {
+        ls->clean();
+        return;
+    }
+    if (ls->getSize() == 2) {
+        if (!checkLocation(ls[0][0], ls[0][1])) {
+            ls->clean();
         }
+    } else {
+        int ret = getCheckValue(*ls);
+        if (ret == 4 || ret == 5) ls->removeHead();
     }
 }
 
@@ -303,8 +335,12 @@ bool VFS(char *cmd, L1List<VRecord> &recList){
     l.removeHead();
 
     if (!l.isEmpty()){
-        L1List<Comparator<VRecord>> cmpRecord;
-        
+        L1List<VRecord> result;
+        l.traverse(getStopRecords, &result);
+        removeStopRecords(&result);
+        result.reverse();
+        if (result.isEmpty()) NONSTOP;
+        else cout << "(" << result[0].x << " " << result[0].y << ")" << endl;
     }
     else NOTFOUND;
     return true;
@@ -420,7 +456,7 @@ bool initVGlobalData(void** pGData) {
     mCMD->registerCommand(getCmdLabel(VLTType), VLT);
     mCMD->registerCommand(getCmdLabel(VCRType), VCR);
     mCMD->registerCommand(getCmdLabel(VMTType), VMT);
-    mCMD->registerCommand(getCmdLabel(VMTType), VFS);
+    mCMD->registerCommand(getCmdLabel(VFSType), VFS);
     return true;
 }
 void releaseVGlobalData(void* pGData) {
