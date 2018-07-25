@@ -48,6 +48,10 @@ public:
     	clean();
     }
 
+    L1Item<T> *getHead(){
+        return _pHead;
+    }
+
     void    clean();
     bool    isEmpty() {
         return _pHead == NULL;
