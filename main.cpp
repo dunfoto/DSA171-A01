@@ -17,6 +17,7 @@ int main(int narg, char** argv) {
 
     loadRequests(argv[1], reqList);
     loadVDB(argv[2], recDB);
+   // for (int i = 0; i < recDB.getSize(); i++) printVRecord(recDB[i]);
     cout << fixed << setprecision(12);// preset for floating point numbers
     /// Process events
     if (initVGlobalData(&pGData)) {

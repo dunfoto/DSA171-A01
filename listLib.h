@@ -122,6 +122,7 @@ public:
                 pre -> pNext = p -> pNext;
                 delete p;
                 p = pre->pNext;
+                _size--;
             } else {
                 pre = p;
                 p = p -> pNext;

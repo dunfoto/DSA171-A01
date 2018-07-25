@@ -129,49 +129,32 @@ void getRoD(VRecord &data, void *list) {
 }
 
 bool checkLocation(VRecord& a, VRecord& b) {
-    return a.x == b.x && a.y == b.y;
-}
-
-int getCheckValue(L1List<VRecord>& ls) {
-    if (ls.getSize() == 1) return -1;
-    if (ls.getSize() == 2) {
-        VRecord r1 = ls[0];
-        VRecord r2 = ls[1];
-        if (checkLocation(r1, r2)) return 0;
-        else return 1;
-    } else {
-        VRecord r1 = ls[0];
-        VRecord r2 = ls[1];
-        VRecord r3 = ls[2];
-        if (checkLocation(r1, r2)) {
-            if (checkLocation(r2, r3)) return 2;
-            else return 3;
-        } else {
-            if (checkLocation(r2, r3)) return 4;
-            else return 5;
-        }
-    }
+    return distanceVR(a.y, a.x, b.y, b.x) < 0.005;
 }
 
 void getStopRecords(VRecord &data, void *list) {
     L1List<VRecord> *ls = (L1List<VRecord>*) list;
-    ls->insertHead(data);
-    switch (getCheckValue(*ls)) {
-        case 0:
-            break;
-        case 1:
-            ls->removeLast();
-            break;
-        case 2:
-            ls->remove(1);
-            break;
-        case 3:
-            break;
-        case 4:
-            break;
-        case 5:
-            ls->remove(1);
-            break;
+    if (ls -> isEmpty()) ls -> insertHead(data);
+    else {
+        if (ls -> getSize() == 1) {
+            if (checkLocation(ls[0][0], data)){ 
+                ls -> insertHead(data);
+            } else {
+                ls -> removeHead();
+                ls -> insertHead(data);
+            }
+        } else {
+            if (checkLocation(ls[0][0], data)) {
+                ls -> insertHead(data);
+            } else {
+                if (checkLocation(ls[0][0], ls[0][1])) {
+                    ls -> insertHead(data);
+                } else {
+                    ls -> removeHead();
+                    ls -> insertHead(data);
+                }
+            }
+        }
     }
 }
 
@@ -180,15 +163,8 @@ void removeStopRecords(L1List<VRecord> *ls) {
         ls->clean();
         return;
     }
-    if (ls->getSize() == 2) {
-        if (!checkLocation(ls[0][0], ls[0][1])) {
-            ls->clean();
-        }
-    } else {
-        int ret = getCheckValue(*ls);
-        if (ret == 4 || ret == 5) {
-            ls->removeHead();
-        }
+    if (!checkLocation(ls[0][0], ls[0][1])) {
+        ls -> removeHead();
     }
 }
 
@@ -361,8 +337,15 @@ bool VMT(char *cmd, L1List<VRecord> &recList){
     l.insertHead(r);
     recList.traverse(getRoD, &l);
     l.removeHead();
+
+    int stopTime = 0;
+    for (int i = 0; i < l.getSize() - 1; i++) {
+        if (checkLocation(l[i], l[i+1])) {
+            stopTime += l[i+1].timestamp - l[i].timestamp;
+        }
+    }
     if (!l.isEmpty()){
-        time_t t = l[l.getSize() - 1].timestamp - l[0].timestamp;
+        int t = l[l.getSize() - 1].timestamp - l[0].timestamp - stopTime;
         cout << t << endl;
     }
     else NOTFOUND;
@@ -412,6 +395,7 @@ bool VLS(char *cmd, L1List<VRecord> &recList){
 
 bool VMS(char *cmd, L1List<VRecord> &recList){
     if (!cmd) return false;
+
     VRecord r(cmd);
     L1List<VRecord> l;
     l.insertHead(r);
@@ -419,21 +403,28 @@ bool VMS(char *cmd, L1List<VRecord> &recList){
     l.removeHead();
 
     if (!l.isEmpty()){
-        L1List<VRecord> result;
-        l.traverse(getStopRecords, &result);
-        removeStopRecords(&result);
-        result.reverse();
-        int maxTime = 0;
-        if (result.isEmpty()) NONSTOP;
-        else {
-            for (int i = 0; i < result.getSize(); i+=2) {
-                int crtTime = result[i+1].timestamp - result[i].timestamp;
-                if (crtTime > maxTime) maxTime = crtTime;
-            }
-            cout << maxTime << endl;
+        int j = -1;
+        int crtTime = 0;
+        int maxTime = -1;
+        for (int i = 0; i < l.getSize() - 1; i++) {
+            if (checkLocation(l[i], l[i+1])) {
+                if (j == -1) j = i;
+                if (checkLocation(l[j], l[i+1])) {
+                    crtTime = l[i+1].timestamp - l[j].timestamp;
+                    if (crtTime > maxTime) maxTime = crtTime;
+                } else {
+                    j = i;
+                    crtTime = l[i+1].timestamp - l[j].timestamp;
+                    if (crtTime > maxTime) maxTime = crtTime;
+                }
+            } else {
+                j = -1;
+                crtTime = 0;
+            } 
         }
-    }
-    else NOTFOUND;
+        if (maxTime != -1) cout << maxTime << endl;
+        else NONSTOP;
+    } else NONSTOP;
     return true;
 }
 
@@ -446,7 +437,7 @@ bool MST(char *cmd, L1List<VRecord> &recList){
     L1List<VRecord> ListUnit;
     recList.traverse(devices, &ListUnit);
 
-    int maxTime = -1;
+    int maxTime = 0;
     for (int i = 0; i < ListUnit.getSize(); i++) {
         L1List<VRecord> l;
         l.insertHead(ListUnit[i]);
@@ -454,20 +445,28 @@ bool MST(char *cmd, L1List<VRecord> &recList){
         l.removeHead();
 
         if (!l.isEmpty()){
-            L1List<VRecord> result;
-            l.traverse(getStopRecords, &result);
-            removeStopRecords(&result);
-            result.reverse();
-            if (result.isEmpty()) continue;
-            else {
-                for (int i = 0; i < result.getSize(); i+=2) {
-                    int crtTime = result[i+1].timestamp - result[i].timestamp;
-                    if (crtTime > maxTime) maxTime = crtTime;
+            int j = -1;
+            int crtTime = 0;
+            for (int i = 0; i < l.getSize() - 1; i++) {
+                if (checkLocation(l[i], l[i+1])) {
+                    if (j == -1) j = i;
+                    if (checkLocation(l[j], l[i+1])) {
+                        crtTime = l[i+1].timestamp - l[j].timestamp;
+                        if (crtTime > maxTime) maxTime = crtTime;
+                    } else {
+                        j = i;
+                        crtTime = l[i+1].timestamp - l[j].timestamp;
+                        if (crtTime > maxTime) maxTime = crtTime;
+                    }
+                } else {
+                    j = -1;
+                    crtTime = 0;
                 }
+                
             }
         }
     }
-    if (maxTime == -1) NONSTOP;
+    if (maxTime == 0) NONSTOP;
     else cout << maxTime << 's' << endl;
 
     return true;
@@ -670,7 +669,7 @@ bool CAS(char *cmd, L1List<VRecord> &recList) {
     }
     double p = (double) ListUnit.getSize() / 1000;
     double dis = (double) distance / p;
-    cout << dis << endl;
+    cout << dis << " meter" << endl;
     return true;
 }
 
